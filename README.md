@@ -36,7 +36,7 @@ $documentId = $documents->getLastCreatedId();
 $documents->get($documentId);
 $documents->update($documentId, array("name" => "Don John"));
 $documents->delete($documentId);
-$documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"))
+$documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
 ```
 
 Schemas methods
