@@ -1,7 +1,7 @@
 # TrueVault PHP Client Library
 
 This is unofficial TrueVault PHP client library that enables developers to implement a rich set of server-side functionality for accessing TrueVault's API.
-[TrueVault](https://www.truevault.com/)
+- [TrueVault](https://www.truevault.com/)
 
 ## Requirements
 - PHP 5
@@ -28,7 +28,7 @@ $schemas = $trueVault->schemas(TRUEVAULT_VAULT_ID);
 $documents = $trueVault->documents(TRUEVAULT_VAULT_ID);
 ```
 
-Documents methods
+Document methods
 ```php
 $documents->create(array("name" => "Don Joe"));
 $documentId = $documents->getLastCreatedId();
@@ -39,7 +39,7 @@ $documents->delete($documentId);
 $documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
 ```
 
-Schemas methods
+Schema methods
 ```php
 $schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
 $schemaId = $schemas->getLastCreatedId();
