@@ -30,8 +30,8 @@ $documents = $trueVault->documents(TRUEVAULT_VAULT_ID);
 
 Document methods
 ```php
-$documents->create(array("name" => "Don Joe"));
-$documentId = $documents->lastInsertId();
+$response = $documents->create(array("name" => "Don Joe"));
+$documentId = $response["document_id"];
 
 $documents->get($documentId);
 $documents->update($documentId, array("name" => "Don John"));
@@ -41,8 +41,8 @@ $documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" =>
 
 Schema methods
 ```php
-$schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
-$schemaId = $schemas->lastInsertId();
+$schema = $schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
+$schemaId = $schema["id"];
 
 $schemas->get($schemaId);
 $schemas->update($schemaId, array("name" => "user", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));

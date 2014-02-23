@@ -447,8 +447,10 @@ class TrueVaultSchemas extends TrueVault
         $params["schema"] = $this->truevault->encodeData($data);
         $return = $this->truevault->api("vaults/{$this->vaultId}/schemas", "POST", $params);
 
-        if (array_key_exists("schema", $return))
+        if (array_key_exists("schema", $return)) {
             $this->lastId = $return["schema"]["id"];
+            return $return["schema"];
+        }
 
         return $return;
     }

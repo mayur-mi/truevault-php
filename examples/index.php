@@ -21,16 +21,16 @@ var_dump($trueVault->findAllVaults());
 //    $truevault->schemas($vaultId)->delete($schemaId);
 
 // schemas
-var_dump($schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string")))));
-$schemaId = $schemas->lastInsertId();
+var_dump($schema = $schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string")))));
+$schemaId = $schema["id"];
 var_dump($schemas->get($schemaId));
 var_dump($schemas->update($schemaId, array("name" => "user", "fields" => array(array("name" => "name", "index" => true, "type" => "string")))));
 var_dump($schemas->get($schemaId));
 var_dump($schemas->findAll());
 
 // documents
-var_dump($documents->create(array("name" => "Don Joe")));
-$documentId = $documents->lastInsertId();
+var_dump($response = $documents->create(array("name" => "Don Joe")));
+$documentId = $response["document_id"];
 var_dump($documents->get($documentId));
 var_dump($documents->update($documentId, array("name" => "Don Joe Two")));
 var_dump($documents->get($documentId));
