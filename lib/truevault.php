@@ -297,10 +297,10 @@ class TrueVaultDocuments extends TrueVault
     /**
      * @var string last created document ID
      */
-    private $lastCreatedId;
+    private $lastId;
 
-    public function getLastCreatedId() {
-        return $this->lastCreatedId;
+    public function lastInsertId() {
+        return $this->lastId;
     }
 
     public function setVaultId($vaultId) {
@@ -323,13 +323,13 @@ class TrueVaultDocuments extends TrueVault
      * @return mixed
      */
     public function create($data, $params = array()) {
-        $this->lastCreatedId = null;
+        $this->lastId = null;
 
         $params["document"] = $this->truevault->encodeData($data);
         $return = $this->truevault->api("vaults/{$this->vaultId}/documents", "POST", $params);
 
         if (array_key_exists("document_id", $return))
-            $this->lastCreatedId = $return["document_id"];
+            $this->lastId = $return["document_id"];
 
         return $return;
     }
@@ -416,10 +416,10 @@ class TrueVaultSchemas extends TrueVault
     /**
      * @var string last created document ID
      */
-    private $lastCreatedId;
+    private $lastId;
 
-    public function getLastCreatedId() {
-        return $this->lastCreatedId;
+    public function lastInsertId() {
+        return $this->lastId;
     }
 
     public function setVaultId($vaultId) {
@@ -442,13 +442,13 @@ class TrueVaultSchemas extends TrueVault
      * @return mixed
      */
     public function create($data, $params = array()) {
-        $this->lastCreatedId = null;
+        $this->lastId = null;
 
         $params["schema"] = $this->truevault->encodeData($data);
         $return = $this->truevault->api("vaults/{$this->vaultId}/schemas", "POST", $params);
 
         if (array_key_exists("schema", $return))
-            $this->lastCreatedId = $return["schema"]["id"];
+            $this->lastId = $return["schema"]["id"];
 
         return $return;
     }
