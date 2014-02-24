@@ -2,9 +2,9 @@
 
 require_once("../lib/truevault.php");
 
-define("TRUEVAULT_VAULT_ID", "12345678-1234-1234-1234-123456789012");
 define("TRUEVAULT_API_KEY", "12345678-1234-1234-1234-123456789012");
 define("TRUEVAULT_ACCOUNT_ID", "12345678-1234-1234-1234-123456789012");
+define("TRUEVAULT_VAULT_ID", "12345678-1234-1234-1234-123456789012");
 
 $trueVault = new TrueVault(array(
     "apiKey" => TRUEVAULT_API_KEY,
@@ -34,10 +34,15 @@ $documentId = $response["document_id"];
 var_dump($documents->get($documentId));
 var_dump($documents->update($documentId, array("name" => "Don Joe Two")));
 var_dump($documents->get($documentId));
+var_dump($documents->delete($documentId));
+
+// searchable document
+var_dump($response = $documents->create(array("name" => "Jane Doe"), array("schema_id" => $schemaId)));
+$documentId = $response["document_id"];
 
 // search
-var_dump($documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Bad Name")))));
+var_dump($documents->search(array("filter" => array("name" => "Jane Doe"))));
 
 // clean up
-var_dump($schemas->delete($schemaId));
 var_dump($documents->delete($documentId));
+var_dump($schemas->delete($schemaId));
