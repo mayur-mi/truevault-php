@@ -179,7 +179,7 @@ class TrueVault {
         $ch = curl_init();
         $opts = self::$CURL_OPTS;
 
-        // do not support file @ params for safety reasons
+        // pass post fields as string instead of array so curl file uploads are not supported here
         $opts[CURLOPT_POSTFIELDS] = http_build_query($params, null, '&');
         $opts[CURLOPT_URL] = $url;
         $opts[CURLOPT_CUSTOMREQUEST] = $method;
