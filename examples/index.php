@@ -13,6 +13,7 @@ $trueVault = new TrueVault(array(
 
 $schemas = $trueVault->schemas(TRUEVAULT_VAULT_ID);
 $documents = $trueVault->documents(TRUEVAULT_VAULT_ID);
+$blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 
 var_dump($trueVault->findAllVaults());
 
@@ -46,3 +47,11 @@ var_dump($documents->search(array("filter" => array("name" => "Jane Doe"))));
 // clean up
 var_dump($documents->delete($documentId));
 var_dump($schemas->delete($schemaId));
+
+// blobs
+var_dump($blob = $blobs->upload("input_file_1.bin"));
+$blobId = $blob["blob_id"];
+
+var_dump($blobs->upload("input_file_2.bin", $blobId)); // replace existing
+var_dump($blobs->download($blobId, "output_file.bin"));
+var_dump($blobs->delete($blobId));

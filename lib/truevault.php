@@ -5,7 +5,7 @@
  *
  * @author Marek Vavrecan <vavrecan@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3
- * @version 1.0.0
+ * @version 1.0.2
  */
 
 if (!function_exists('curl_init')) {
@@ -31,7 +31,7 @@ class TrueVaultException extends Exception
     protected $type;
 
     /**
-     * Make a new Exception with the given result
+     * Make a new Exception with the result
      * @param string $message
      * @param int $code
      * @param string $type
@@ -69,7 +69,7 @@ class TrueVaultException extends Exception
 }
 
 class TrueVault {
-    const VERSION = "1.0.0";
+    const VERSION = "1.0.2";
     const API_VERSION = "v1";
 
     /**
@@ -141,12 +141,12 @@ class TrueVault {
     }
 
     /**
-     * Build the URL for given path and parameters.
+     * Build the URL for path and parameters.
      *
      * @param string $path   Optional path (without a leading slash)
      * @param array  $params Optional query parameters
      *
-     * @return string The URL for the given parameters
+     * @return string The URL for the parameters
      */
     protected function getUrl($path = "", $params = array()) {
         $url = self::$API_ENDPOINT . "/" . self::API_VERSION . "/";
@@ -169,26 +169,52 @@ class TrueVault {
      * @param string $path The path (required)
      * @param string $method The http method (default 'GET')
      * @param array $params The query/post data
+     * @param array $transfer Containing source file to upload (array key upload) or download (array key download)
      *
      * @return mixed The decoded response object
      * @throws TrueVaultException
      */
-    public function api($path, $method = "GET", $params = array()) {
+    public function api($path, $method = "GET", $params = array(), $transfer = array()) {
         $url = $this->getUrl($path);
 
         $ch = curl_init();
         $opts = self::$CURL_OPTS;
 
-        // do not support file @ params for safety reasons
+        // build query instead of passing array, to avoid unwanted file uploads
+        // with older curl libraries that does not support CURLFile
         $opts[CURLOPT_POSTFIELDS] = http_build_query($params, null, '&');
+
         $opts[CURLOPT_URL] = $url;
         $opts[CURLOPT_CUSTOMREQUEST] = $method;
         $opts[CURLOPT_USERPWD] = $this->getApiKey() . ":";
+
+        // set upload mode
+        if (array_key_exists("upload", $transfer)) {
+            $file = $transfer["upload"];
+            $fileTransfer = new TrueVaultFileTransfer($file, "r");
+
+            $opts[CURLOPT_HTTPHEADER] = array("Content-Type: application/octet-stream", "Content-Length: " . $fileTransfer->size());
+            $opts[CURLOPT_BINARYTRANSFER] = true;
+            $opts[CURLOPT_PUT] = true;
+            $opts[CURLOPT_INFILE] = $fileTransfer->getHandle();
+            $opts[CURLOPT_INFILESIZE] = $fileTransfer->size();
+            $opts[CURLOPT_READFUNCTION] = array($fileTransfer, "read");
+
+            unset($opts[CURLOPT_POSTFIELDS]);
+        }
+
+        // set download mode
+        if (array_key_exists("download", $transfer)) {
+            $file = $transfer["download"];
+            $fileTransfer = new TrueVaultFileTransfer($file, "w");
+            $opts[CURLOPT_WRITEFUNCTION] = array($fileTransfer, "write");
+        }
 
         curl_setopt_array($ch, $opts);
 
         $result = curl_exec($ch);
         $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $errno = curl_errno($ch);
 
         if ($errno != 0) {
@@ -213,12 +239,19 @@ class TrueVault {
             throw $e;
         }
 
+        // handle error 500
+        if ($httpCode == 500) {
+            $e = new TrueVaultException("Remote server returned internal error", 0, "RemoteException");
+            curl_close($ch);
+            throw $e;
+        }
+
         curl_close($ch);
         return $result;
     }
 
     /**
-     * Obtain list of vaults for given account Id
+     * Obtain list of vaults for account Id
      * @return mixed
      * @throws TrueVaultException
      */
@@ -232,7 +265,7 @@ class TrueVault {
     }
 
     /**
-     * Return True vault document handler
+     * Return TrueVault document handler
      * @param $vaultId
      * @return TrueVaultDocuments
      */
@@ -243,7 +276,7 @@ class TrueVault {
 
 
     /**
-     * Return True vault schema handler
+     * Return TrueVault schema handler
      * @param $vaultId
      * @return TrueVaultSchemas
      */
@@ -252,6 +285,15 @@ class TrueVault {
         return $trueVaultSchemas;
     }
 
+    /**
+     * Return TrueVault blob handler (file storage)
+     * @param $vaultId
+     * @return TrueVaultSchemas
+     */
+    public function blobs($vaultId) {
+        $trueVaultBlobs = new TrueVaultBlobs($this, $vaultId);
+        return $trueVaultBlobs;
+    }
 
     /**
      * Prints to the error log if you are not in command line mode.
@@ -264,7 +306,7 @@ class TrueVault {
     }
 
     /**
-     * Encode given data
+     * Encode data
      * @param mixed $data
      * @return string
      */
@@ -273,7 +315,7 @@ class TrueVault {
     }
 
     /**
-     * Decode given data
+     * Decode data
      * @param string $data
      * @return mixed
      */
@@ -282,22 +324,22 @@ class TrueVault {
     }
 }
 
-class TrueVaultDocuments extends TrueVault
+abstract class TrueVaultStores
 {
     /**
      * @var TrueVault API connection class
      */
-    private $truevault;
+    protected $trueVault;
 
     /**
      * @var string ID of the vault
      */
-    private $vaultId;
+    protected $vaultId;
 
     /**
-     * @var string last created document ID
+     * @var string last created object ID
      */
-    private $lastId;
+    protected $lastId;
 
     public function lastInsertId() {
         return $this->lastId;
@@ -311,11 +353,14 @@ class TrueVaultDocuments extends TrueVault
         return $this->vaultId;
     }
 
-    public function __construct($truevault, $vaultId) {
-        $this->truevault = $truevault;
+    public function __construct($trueVault, $vaultId) {
+        $this->trueVault = $trueVault;
         $this->vaultId = $vaultId;
     }
+}
 
+class TrueVaultDocuments extends TrueVaultStores
+{
     /**
      * Create new document
      * @param mixed $data
@@ -325,8 +370,8 @@ class TrueVaultDocuments extends TrueVault
     public function create($data, $params = array()) {
         $this->lastId = null;
 
-        $params["document"] = $this->truevault->encodeData($data);
-        $return = $this->truevault->api("vaults/{$this->vaultId}/documents", "POST", $params);
+        $params["document"] = $this->trueVault->encodeData($data);
+        $return = $this->trueVault->api("vaults/{$this->vaultId}/documents", "POST", $params);
 
         if (array_key_exists("document_id", $return))
             $this->lastId = $return["document_id"];
@@ -346,11 +391,11 @@ class TrueVaultDocuments extends TrueVault
         if (is_array($documentId))
             $documentId = join(",", $documentId);
 
-        $response = $this->truevault->api("vaults/{$this->vaultId}/documents/{$documentId}", "GET", $params);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "GET", $params);
 
         // return single document
         if (is_string($response)) {
-            return $this->truevault->decodeData($response);
+            return $this->trueVault->decodeData($response);
         }
 
         // return multiple documents
@@ -358,7 +403,7 @@ class TrueVaultDocuments extends TrueVault
             $list = array();
 
             foreach ($response["documents"] as $document) {
-                $list[$document["id"]] = $this->truevault->decodeData($document["document"]);
+                $list[$document["id"]] = $this->trueVault->decodeData($document["document"]);
             }
 
             return $list;
@@ -368,13 +413,13 @@ class TrueVaultDocuments extends TrueVault
     }
 
     /**
-     * Delete given document
+     * Delete document
      * @param string $documentId
      * @param array $params
      * @return mixed
      */
     public function delete($documentId, $params = array()) {
-        $response = $this->truevault->api("vaults/{$this->vaultId}/documents/{$documentId}", "DELETE", $params);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "DELETE", $params);
         return $response;
     }
 
@@ -386,55 +431,23 @@ class TrueVaultDocuments extends TrueVault
      * @return mixed
      */
     public function update($documentId, $data, $params = array()) {
-        $params["document"] = $this->truevault->encodeData($data);
-        return $this->truevault->api("vaults/{$this->vaultId}/documents/{$documentId}", "PUT", $params);
+        $params["document"] = $this->trueVault->encodeData($data);
+        return $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "PUT", $params);
     }
 
     public function search($searchOptions, $params = array()) {
-        $search = $this->truevault->encodeData($searchOptions);
-        $return = $this->truevault->api("vaults/{$this->vaultId}/?search_option={$search}", "GET", $params);
+        $search = $this->trueVault->encodeData($searchOptions);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/?search_option={$search}", "GET", $params);
 
-        if (array_key_exists("data", $return))
-            return $return["data"];
+        if (array_key_exists("data", $response))
+            return $response["data"];
 
-        return $return;
+        return $response;
     }
 }
 
-class TrueVaultSchemas extends TrueVault
+class TrueVaultSchemas extends TrueVaultStores
 {
-    /**
-     * @var TrueVault API connection class
-     */
-    private $truevault;
-
-    /**
-     * @var string ID of the vault
-     */
-    private $vaultId;
-
-    /**
-     * @var string last created document ID
-     */
-    private $lastId;
-
-    public function lastInsertId() {
-        return $this->lastId;
-    }
-
-    public function setVaultId($vaultId) {
-        $this->vaultId = $vaultId;
-    }
-
-    public function getVaultId() {
-        return $this->vaultId;
-    }
-
-    public function __construct($truevault, $vaultId) {
-        $this->truevault = $truevault;
-        $this->vaultId = $vaultId;
-    }
-
     /**
      * Create new schema
      * @param mixed $data
@@ -444,15 +457,15 @@ class TrueVaultSchemas extends TrueVault
     public function create($data, $params = array()) {
         $this->lastId = null;
 
-        $params["schema"] = $this->truevault->encodeData($data);
-        $return = $this->truevault->api("vaults/{$this->vaultId}/schemas", "POST", $params);
+        $params["schema"] = $this->trueVault->encodeData($data);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/schemas", "POST", $params);
 
-        if (array_key_exists("schema", $return)) {
-            $this->lastId = $return["schema"]["id"];
-            return $return["schema"];
+        if (array_key_exists("schema", $response)) {
+            $this->lastId = $response["schema"]["id"];
+            return $response["schema"];
         }
 
-        return $return;
+        return $response;
     }
 
     /**
@@ -463,7 +476,7 @@ class TrueVaultSchemas extends TrueVault
      * @return string
      */
     public function get($schemaId, $params = array()) {
-        $response = $this->truevault->api("vaults/{$this->vaultId}/schemas/{$schemaId}", "GET", $params);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/schemas/{$schemaId}", "GET", $params);
 
         if (is_array($response) && array_key_exists("schema", $response))
             return $response["schema"];
@@ -472,13 +485,13 @@ class TrueVaultSchemas extends TrueVault
     }
 
     /**
-     * Delete given schema
+     * Delete schema
      * @param string $schemaId
      * @param array $params
      * @return mixed
      */
     public function delete($schemaId, $params = array()) {
-        $response = $this->truevault->api("vaults/{$this->vaultId}/schemas/{$schemaId}", "DELETE", $params);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/schemas/{$schemaId}", "DELETE", $params);
         return $response;
     }
 
@@ -490,18 +503,18 @@ class TrueVaultSchemas extends TrueVault
      * @return mixed
      */
     public function update($schemaId, $data, $params = array()) {
-        $params["schema"] = $this->truevault->encodeData($data);
-        return $this->truevault->api("vaults/{$this->vaultId}/schemas/{$schemaId}", "PUT", $params);
+        $params["schema"] = $this->trueVault->encodeData($data);
+        return $this->trueVault->api("vaults/{$this->vaultId}/schemas/{$schemaId}", "PUT", $params);
     }
 
     /**
      * List all schemas
      * @param array $params
      * @throws TrueVaultException
-     * @return string
+     * @return array
      */
     public function findAll($params = array()) {
-        $response = $this->truevault->api("vaults/{$this->vaultId}/schemas", "GET", $params);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/schemas", "GET", $params);
 
         // get all schemas
         if (is_array($response) && array_key_exists("schemas", $response)) {
@@ -515,5 +528,118 @@ class TrueVaultSchemas extends TrueVault
         }
 
         throw new TrueVaultException("Unable to obtain schema", 0);
+    }
+}
+
+class TrueVaultBlobs extends TrueVaultStores
+{
+    /**
+     * Create new or replace existing BLOB store
+     * @param mixed $file
+     * @param string $blobId if specified existing blob will be replaced
+     * @param array $params
+     * @return array
+     */
+    public function upload($file, $blobId = null, $params = array()) {
+        // replace existing
+        if ($blobId) {
+            $response = $this->trueVault->api("vaults/{$this->vaultId}/blobs/{$blobId}", "PUT",
+                $params, array("upload" => $file));
+
+            return $response;
+        }
+
+        // create new
+        $this->lastId = null;
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/blobs", "POST",
+            $params, array("upload" => $file));
+
+        if (array_key_exists("blob_id", $response)) {
+            $this->lastId = $response["blob_id"];
+            return $response;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Download BLOB store data to file
+     * @param string $blobId
+     * @param string $file
+     * @param array $params
+     * @throws TrueVaultException
+     * @return mixed
+     */
+    public function download($blobId, $file, $params = array()) {
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/blobs/{$blobId}", "GET",
+            $params, array("download" => $file));
+
+        return $response;
+    }
+
+    /**
+     * Delete BLOB store
+     * @param string $blobId
+     * @param array $params
+     * @return array
+     */
+    public function delete($blobId, $params = array()) {
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/blobs/{$blobId}", "DELETE", $params);
+        return $response;
+    }
+}
+
+/**
+ * Class CurlFileTransfer
+ * Helper class for performing curl uploads and downloads using streams
+ */
+class TrueVaultFileTransfer
+{
+    private $file;
+
+    public function getHandle() {
+        return $this->file;
+    }
+
+    public function __construct($filename, $mode = "r") {
+        $this->file = fopen($filename, $mode);
+    }
+
+    public function size() {
+        fseek($this->file, 0, SEEK_END);
+        $size = ftell($this->file);
+        fseek($this->file, 0, SEEK_SET);
+        return $size;
+    }
+
+    /**
+     * Used for curl downloads (writing to files)
+     * @param cURL $ch
+     * @param string $data Data to write
+     * @return int Bytes written
+     * @throws TrueVaultException
+     */
+    public function write($ch, $data) {
+        // only read if proper content type is returned
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        if ($contentType != "application/octet-stream")
+            throw new TrueVaultException("Unable to retrieve file", 0, "RemoteException");
+
+        return fwrite($this->file, $data);
+    }
+
+    /**
+     * Used for curl uploads (reading from files)
+     * @param cURL $ch
+     * @param resource $fh Handle
+     * @param bool $length Length to read
+     * @return int Bytes read
+     */
+    public function read($ch, $fh, $length = false) {
+        return fread($fh, $length);
+    }
+
+    public function __destruct() {
+        fclose($this->file);
     }
 }

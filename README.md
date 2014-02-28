@@ -26,6 +26,7 @@ $trueVault = new TrueVault(array(
 
 $schemas = $trueVault->schemas(TRUEVAULT_VAULT_ID);
 $documents = $trueVault->documents(TRUEVAULT_VAULT_ID);
+$blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 ```
 
 Document methods
@@ -51,11 +52,19 @@ $schemas->findAll();
 $schemas->delete($schemaId);
 ```
 
+BLOB methods
+```php
+$response = $blobs->upload("input_file_1.bin");
+$blobId = $response["blob_id"];
+
+$blobs->upload("input_file_2.bin", $blobId); // replace existing
+$blobs->download($blobId, "output_file.bin");
+
+$blobs->delete($blobId);
+```
+
 ## Resources
 [TrueVault REST API Documentation](https://www.truevault.com/documentation/rest-api.html)
-
-## TODO
-- Add BLOB support
 
 ## Author
 - [Marek Vavrecan](mailto:vavrecan@gmail.com)
