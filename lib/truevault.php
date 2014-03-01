@@ -603,6 +603,8 @@ class TrueVaultFileTransfer
 
     public function __construct($filename, $mode = "r") {
         $this->file = fopen($filename, $mode);
+        if (!$this->file)
+            throw new TrueVaultException("Unable to access file", 0, "FileException");
     }
 
     public function size() {
