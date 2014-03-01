@@ -608,10 +608,25 @@ class TrueVaultFileTransfer
     }
 
     public function size() {
-        fseek($this->file, 0, SEEK_END);
-        $size = ftell($this->file);
-        fseek($this->file, 0, SEEK_SET);
-        return $size;
+        $meta = stream_get_meta_data($this->file);
+
+        if (isset($meta["seekable"]) && $meta["seekable"]) {
+            // get resource size by seeking to the end of file
+            fseek($this->file, 0, SEEK_END);
+            $size = ftell($this->file);
+            fseek($this->file, 0, SEEK_SET);
+            return $size;
+        }
+
+        if (isset($meta["wrapper_data"])) {
+            // look for content length header in http transfer
+            foreach ($meta["wrapper_data"] as $header) {
+                if (preg_match("/^Content-Length: (?P<length>\\d+)/i", $header, $match))
+                    return $match["length"];
+            }
+        }
+
+        throw new TrueVaultException("Unable to retrieve file size", 0, "FileException");
     }
 
     /**
