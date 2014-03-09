@@ -8,7 +8,11 @@ This is unofficial TrueVault PHP client library that enables developers to imple
 - Curl PHP extension
 - Json PHP extension
 
-## Install with composer
+## Installation
+### Manual installation
+Just copy library and include `TrueVault.php` file in your project.
+
+### Using composer
 Create or update a `composer.json` file in your project root:
 
 ```
