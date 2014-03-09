@@ -1,7 +1,6 @@
 {
     "name": "truevault/truevault",
     "type": "library",
-    "version": "1.0.2",
     "description": "TrueVault PHP Client Library",
     "keywords": ["truevault","client","api"],
     "homepage": "http://github.com/vavrecan/truevault-php",
