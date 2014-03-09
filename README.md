@@ -8,6 +8,19 @@ This is unofficial TrueVault PHP client library that enables developers to imple
 - Curl PHP extension
 - Json PHP extension
 
+## Install with composer
+Create or update a `composer.json` file in your project root:
+
+```
+{
+    "require": {
+        "truevault/truevault": "@dev"
+    }
+}
+```
+
+- [Composer documentation](https://getcomposer.org/doc/)
+
 ## Examples
 ```php
 define("TRUEVAULT_VAULT_ID", "12345678-1234-1234-1234-123456789012");
