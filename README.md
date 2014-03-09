@@ -4,14 +4,12 @@ This is unofficial TrueVault PHP client library that enables developers to imple
 - [TrueVault](https://www.truevault.com/)
 
 ## Requirements
-- PHP 5
+- PHP >=5.3.0
 - Curl PHP extension
 - Json PHP extension
 
 ## Examples
 ```php
-require_once("lib/truevault.php");
-
 define("TRUEVAULT_VAULT_ID", "12345678-1234-1234-1234-123456789012");
 define("TRUEVAULT_API_KEY", "12345678-1234-1234-1234-123456789012");
 define("TRUEVAULT_ACCOUNT_ID", "12345678-1234-1234-1234-123456789012");

@@ -1,0 +1,23 @@
+{
+    "name": "truevault/truevault",
+    "type": "library",
+    "version": "1.0.2",
+    "description": "TrueVault PHP Client Library",
+    "keywords": ["truevault","client","api"],
+    "homepage": "http://github.com/vavrecan/truevault-php",
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "name": "Marek Vavrecan",
+            "email": "vavrecan@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-0": { "TrueVault": "." }
+    }
+}

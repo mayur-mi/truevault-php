@@ -1,6 +1,6 @@
 <?php
 
-require_once("../lib/truevault.php");
+require_once("../TrueVault/TrueVault.php");
 
 define("TRUEVAULT_API_KEY", "12345678-1234-1234-1234-123456789012");
 define("TRUEVAULT_ACCOUNT_ID", "12345678-1234-1234-1234-123456789012");
