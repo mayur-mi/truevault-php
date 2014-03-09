@@ -17,6 +17,6 @@
         "ext-json": "*"
     },
     "autoload": {
-        "psr-0": { "TrueVault": "." }
+        "psr-0": { "": "TrueVault/" }
     }
 }
