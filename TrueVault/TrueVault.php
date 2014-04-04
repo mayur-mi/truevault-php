@@ -5,7 +5,7 @@
  *
  * @author Marek Vavrecan <vavrecan@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3
- * @version 1.0.2
+ * @version 1.0.3
  */
 
 if (!function_exists('curl_init')) {
@@ -235,6 +235,16 @@ class TrueVault {
 
         // handle error within response
         if (is_array($result) && array_key_exists("error", $result)) {
+            // make sure all required keys are present
+            if (!array_key_exists("message", $result["error"]))
+                $result["error"]["message"] = "";
+
+            if (!array_key_exists("code", $result["error"]))
+                $result["error"]["code"] = "";
+
+            if (!array_key_exists("type", $result["error"]))
+                $result["error"]["type"] = "";
+
             $e = new TrueVaultException($result["error"]["message"], $result["error"]["code"], $result["error"]["type"]);
             curl_close($ch);
             throw $e;
