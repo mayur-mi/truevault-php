@@ -47,9 +47,7 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 ### Document methods
 
 #### Create
-- ```php
-  array create ( mixed $data )
-  ```
+- `array create ( mixed $data )`
 
 - **Parameters** <br/>
   `$data` - Data for document
@@ -58,15 +56,13 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
   returns array with created document id in `document_id` key.
 
 - **Example** <br/>
-  ```php
-  $response = $documents->create(array("name" => "Don Joe"));
-  $documentId = $response["document_id"];
-  ```
+```php
+$response = $documents->create(array("name" => "Don Joe"));
+$documentId = $response["document_id"];
+```
 
 #### Get
-- ```php
-  array get ( string $documentId )
-  ```
+- `array get ( string $documentId )`
 
 - **Parameters** <br/>
   `$documentId` - TrueVault document ID
@@ -75,49 +71,43 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
   returns TrueVault document data on success
 
 - **Example** <br/>
-  ```php
-  $data = $documents->get($documentId);
-  ```
+```php
+$data = $documents->get($documentId);
+```
 
 #### Update
-- ```php
-  array update ( string $documentId, mixed $data )
-  ```
+- `array update ( string $documentId, mixed $data )`
 
 -  **Parameters** <br/>
   `$documentId` - TrueVault document ID <br/>
   `$data` - New data for document
 
 - **Example** <br/>
-  ```php
-  $documents->update($documentId, array("name" => "Don John"));
-  ```
+```php
+$documents->update($documentId, array("name" => "Don John"));
+```
 
 #### Delete
-- ```php
-  array delete ( string $documentId )
-  ```
+- `array delete ( string $documentId )`
 
 - **Parameters** <br/>
   `$documentId` - TrueVault document ID
 
 - **Example** <br/>
-  ```php
-  $documents->delete($documentId);
-  ```
+```php
+$documents->delete($documentId);
+```
 
 #### Search
 - **Example** <br/>
-  ```php
-  $documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
-  ```
+```php
+$documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
+```
 
 ### BLOB methods
 
 #### Upload
-- ```php
-  array upload ( string $path, $blobId = null )
-  ```
+- `array upload ( string $path, $blobId = null )`
 
 - **Parameters** <br/>
   `$path` - local file path - this file will be uploaded on TrueVault server and blob will be created <br/>
@@ -127,16 +117,14 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
   Returns true on success
 
 - **Example** <br/>
-  ```php
-  $response = $blobs->upload("input_file_1.bin");
-  $blobId = $response["blob_id"];
-  $blobs->upload("input_file_2.bin", $blobId); // replace existing
-  ```
+```php
+$response = $blobs->upload("input_file_1.bin");
+$blobId = $response["blob_id"];
+$blobs->upload("input_file_2.bin", $blobId); // replace existing
+```
 
 #### Download
-- ```php
-  array download ( $blobId, string $path )
-  ```
+- `array download ( $blobId, string $path )`
 
 - **Parameters** <br/>
   `$blobId` - TrueVault Blob ID <br/>
@@ -146,14 +134,12 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
   Returns true on success
 
 - **Example** <br/>
-  ```php
-  $blobs->download($blobId, "output_file.bin");
-  ```
+```php
+$blobs->download($blobId, "output_file.bin");
+```
 
 #### Delete
-- ```php
-  array delete ( $blobId )
-  ```
+- `array delete ( $blobId )`
 
 - **Parameters** <br/>
   `$blobId` - TrueVault Blob ID
@@ -162,9 +148,9 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
   Returns true on success
 
 - **Example** <br/>
-  ```php
-  $blobs->delete($blobId);
-  ```
+```php
+$blobs->delete($blobId);
+```
 
 ### Schema methods
 ```php
