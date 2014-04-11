@@ -47,21 +47,17 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 ### Document methods
 
 #### Create
-
 ```php
 array create ( mixed $data )
 ```
 
 **Parameters**
-
 `$data` - Data for document
 
 **Return Values**
-
 returns array with created document id in `document_id` key.
 
 **Example**
-
 ```php
 $response = $documents->create(array("name" => "Don Joe"));
 $documentId = $response["document_id"];
