@@ -47,14 +47,21 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 ### Document methods
 
 #### Create
+
 ```php
 array create ( mixed $data )
 ```
-** Parameters **
+
+**Parameters**
+
 `$data` - Data for document
-** Return Values **
+
+**Return Values**
+
 returns array with created document id in `document_id` key.
-** Example **
+
+**Example**
+
 ```php
 $response = $documents->create(array("name" => "Don Joe"));
 $documentId = $response["document_id"];
@@ -64,11 +71,11 @@ $documentId = $response["document_id"];
 ```php
 array get ( string $documentId )
 ```
-** Parameters **
+**Parameters**
 `$documentId` - TrueVault document ID
-** Return Values **
+**Return Values**
 returns TrueVault document data on success
-** Example **
+**Example**
 ```php
 $data = $documents->get($documentId);
 ```
@@ -102,18 +109,6 @@ $documents->delete($documentId);
 $documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
 ```
 
-### Schema methods
-```php
-$schema = $schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
-$schemaId = $schema["id"];
-
-$schemas->get($schemaId);
-$schemas->update($schemaId, array("name" => "user", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
-$schemas->get($schemaId);
-$schemas->findAll();
-$schemas->delete($schemaId);
-```
-
 ### BLOB methods
 
 #### Upload
@@ -132,7 +127,6 @@ $blobId = $response["blob_id"];
 $blobs->upload("input_file_2.bin", $blobId); // replace existing
 ```
 
-
 #### Download
 ```php
 array download ( $blobId, string $path )
@@ -147,7 +141,6 @@ Returns true on success
 $blobs->download($blobId, "output_file.bin");
 ```
 
-
 #### Delete
 ```php
 array delete ( $blobId )
@@ -159,6 +152,18 @@ Returns true on success
 ** Example **
 ```php
 $blobs->delete($blobId);
+```
+
+### Schema methods
+```php
+$schema = $schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
+$schemaId = $schema["id"];
+
+$schemas->get($schemaId);
+$schemas->update($schemaId, array("name" => "user", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
+$schemas->get($schemaId);
+$schemas->findAll();
+$schemas->delete($schemaId);
 ```
 
 ## Resources
