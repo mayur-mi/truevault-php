@@ -25,7 +25,7 @@ Create or update a `composer.json` file in your project root:
 
 - [Composer documentation](https://getcomposer.org/doc/)
 
-## Examples
+### Examples
 ```php
 define("TRUEVAULT_VAULT_ID", "12345678-1234-1234-1234-123456789012");
 define("TRUEVAULT_API_KEY", "12345678-1234-1234-1234-123456789012");
@@ -37,14 +37,49 @@ $trueVault = new TrueVault(array(
 ));
 
 // get all vaults
-// $trueVault->findAllVaults();
+$vaults = $trueVault->findAllVaults();
 
-$schemas = $trueVault->schemas(TRUEVAULT_VAULT_ID);
 $documents = $trueVault->documents(TRUEVAULT_VAULT_ID);
+$schemas = $trueVault->schemas(TRUEVAULT_VAULT_ID);
 $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 ```
 
-Document methods
+### Document methods
+
+#### Create
+```php
+array create ( mixed $data )
+```
+#### Parameters
+`$data` - Data for document
+#### Return Values
+returns array with created document id in `document_id` key.
+
+#### Get
+```php
+array get ( string $documentId )
+```
+#### Parameters
+`$documentId` - TrueVault document ID
+#### Return Values
+returns TrueVault document data on success
+
+#### Update
+```php
+array update ( string $documentId, mixed $data )
+```
+#### Parameters
+`$documentId` - TrueVault document ID
+`$data` - New data for document
+
+#### Delete
+```php
+array delete ( string $documentId )
+```
+#### Parameters
+`$documentId` - TrueVault document ID
+
+
 ```php
 $response = $documents->create(array("name" => "Don Joe"));
 $documentId = $response["document_id"];
@@ -55,7 +90,7 @@ $documents->delete($documentId);
 $documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
 ```
 
-Schema methods
+### Schema methods
 ```php
 $schema = $schemas->create(array("name" => "name", "fields" => array(array("name" => "name", "index" => true, "type" => "string"))));
 $schemaId = $schema["id"];
@@ -67,7 +102,40 @@ $schemas->findAll();
 $schemas->delete($schemaId);
 ```
 
-BLOB methods
+### BLOB methods
+
+#### Upload
+```php
+array upload ( string $path, $blobId = null )
+```
+#### Parameters
+`$path` - local file path - this file will be uploaded on TrueVault server and blob will be created
+`$blobId` - if specified existing blob data will be replaced
+#### Return Values
+Returns true on success
+
+
+#### Download
+```php
+array download ( $blobId, string $path )
+```
+#### Parameters
+`$blobId` - TrueVault Blob ID
+`$path` - local file path - blob data will be downloaded to specified local file
+#### Return Values
+Returns true on success
+
+
+#### Delete
+```php
+array delete ( $blobId )
+```
+#### Parameters
+`$blobId` - TrueVault Blob ID
+#### Return Values
+Returns true on success
+
+
 ```php
 $response = $blobs->upload("input_file_1.bin");
 $blobId = $response["blob_id"];
