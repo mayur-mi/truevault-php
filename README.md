@@ -50,43 +50,55 @@ $blobs = $trueVault->blobs(TRUEVAULT_VAULT_ID);
 ```php
 array create ( mixed $data )
 ```
-#### Parameters
+** Parameters **
 `$data` - Data for document
-#### Return Values
+** Return Values **
 returns array with created document id in `document_id` key.
+** Example **
+```php
+$response = $documents->create(array("name" => "Don Joe"));
+$documentId = $response["document_id"];
+```
 
 #### Get
 ```php
 array get ( string $documentId )
 ```
-#### Parameters
+** Parameters **
 `$documentId` - TrueVault document ID
-#### Return Values
+** Return Values **
 returns TrueVault document data on success
+** Example **
+```php
+$data = $documents->get($documentId);
+```
 
 #### Update
 ```php
 array update ( string $documentId, mixed $data )
 ```
-#### Parameters
+** Parameters **
 `$documentId` - TrueVault document ID
 `$data` - New data for document
+** Example **
+```php
+$documents->update($documentId, array("name" => "Don John"));
+```
 
 #### Delete
 ```php
 array delete ( string $documentId )
 ```
-#### Parameters
+** Parameters **
 `$documentId` - TrueVault document ID
-
-
+** Example **
 ```php
-$response = $documents->create(array("name" => "Don Joe"));
-$documentId = $response["document_id"];
-
-$documents->get($documentId);
-$documents->update($documentId, array("name" => "Don John"));
 $documents->delete($documentId);
+```
+
+#### Search
+** Example **
+```php
 $documents->search(array("page" => 1, "per_page"=> 3,"filter" => array("name" => array("type" => "not", "value" => "Susan"));
 ```
 
@@ -108,41 +120,44 @@ $schemas->delete($schemaId);
 ```php
 array upload ( string $path, $blobId = null )
 ```
-#### Parameters
+** Parameters **
 `$path` - local file path - this file will be uploaded on TrueVault server and blob will be created
 `$blobId` - if specified existing blob data will be replaced
-#### Return Values
+** Return Values **
 Returns true on success
+** Example **
+```php
+$response = $blobs->upload("input_file_1.bin");
+$blobId = $response["blob_id"];
+$blobs->upload("input_file_2.bin", $blobId); // replace existing
+```
 
 
 #### Download
 ```php
 array download ( $blobId, string $path )
 ```
-#### Parameters
+** Parameters **
 `$blobId` - TrueVault Blob ID
 `$path` - local file path - blob data will be downloaded to specified local file
-#### Return Values
+** Return Values **
 Returns true on success
+** Example **
+```php
+$blobs->download($blobId, "output_file.bin");
+```
 
 
 #### Delete
 ```php
 array delete ( $blobId )
 ```
-#### Parameters
+** Parameters **
 `$blobId` - TrueVault Blob ID
-#### Return Values
+** Return Values **
 Returns true on success
-
-
+** Example **
 ```php
-$response = $blobs->upload("input_file_1.bin");
-$blobId = $response["blob_id"];
-
-$blobs->upload("input_file_2.bin", $blobId); // replace existing
-$blobs->download($blobId, "output_file.bin");
-
 $blobs->delete($blobId);
 ```
 
