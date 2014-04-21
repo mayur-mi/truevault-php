@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once("../TrueVault/TrueVault.php");
 
 define("TRUEVAULT_API_KEY", "12345678-1234-1234-1234-123456789012");

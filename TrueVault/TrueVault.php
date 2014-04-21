@@ -90,9 +90,22 @@ class TrueVault {
     public static $API_ENDPOINT = "https://api.truevault.com";
 
     /**
+     * @var bool
+     */
+    protected $debug = false;
+
+
+    /**
      * @var string
      */
     protected $apiKey;
+
+    /**
+     * @param bool $debug
+     */
+    public function setDebug($debug) {
+        $this->debug = $debug;
+    }
 
     /**
      * @param string $apiKey
@@ -188,6 +201,11 @@ class TrueVault {
         $opts[CURLOPT_URL] = $url;
         $opts[CURLOPT_CUSTOMREQUEST] = $method;
         $opts[CURLOPT_USERPWD] = $this->getApiKey() . ":";
+
+        if ($this->debug) {
+            $opts[CURLOPT_VERBOSE] = true;
+            $opts[CURLOPT_HEADER] = true;
+        }
 
         // set upload mode
         if (array_key_exists("upload", $transfer)) {
