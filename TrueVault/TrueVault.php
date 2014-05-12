@@ -7,15 +7,6 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3
  * @version 1.0.3
  */
-
-if (!function_exists('curl_init')) {
-    throw new Exception('TrueVault needs the CURL PHP extension.');
-}
-
-if (!function_exists('json_decode')) {
-    throw new Exception('TrueVault needs the JSON PHP extension.');
-}
-
 class TrueVaultException extends Exception
 {
     /**
@@ -73,15 +64,12 @@ class TrueVault {
     const API_VERSION = "v1";
 
     /**
-     * Default options for curl.
+     * Default options
      * @var array
      */
-    public static $CURL_OPTS = array(
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FRESH_CONNECT  => true,
-        CURLOPT_TIMEOUT        => 60,
-        CURLOPT_USERAGENT      => "truevault-php"
+    public static $options = array(
+        "timeout"   => 10,
+        "useragent" => "truevault-php"
     );
 
     /**
@@ -192,7 +180,13 @@ class TrueVault {
         $url = $this->getUrl($path);
 
         $ch = curl_init();
-        $opts = self::$CURL_OPTS;
+        $opts = array(
+            CURLOPT_CONNECTTIMEOUT => self::$options["timeout"],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FRESH_CONNECT  => true,
+            CURLOPT_TIMEOUT        => self::$options["timeout"],
+            CURLOPT_USERAGENT      => self::$options["useragent"],
+        );
 
         // build query instead of passing array, to avoid unwanted file uploads
         // with older curl libraries that does not support CURLFile
