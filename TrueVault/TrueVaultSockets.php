@@ -6,7 +6,7 @@
  *
  * @author Marek Vavrecan <vavrecan@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3
- * @version 1.0.3
+ * @version 1.0.5
  */
 
 class TrueVaultSockets extends TrueVault {
