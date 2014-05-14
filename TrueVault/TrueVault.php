@@ -7,6 +7,16 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3
  * @version 1.0.5
  */
+abstract class TrueVaultCache
+{
+    public abstract function get($vaultId, $documentId);
+    public abstract function set($vaultId, $documentId, $data);
+
+    public function delete($vaultId, $documentId) {
+        $this->set($vaultId, $documentId, null);
+    }
+}
+
 class TrueVaultException extends Exception
 {
     /**
@@ -78,6 +88,11 @@ class TrueVault {
     public static $API_ENDPOINT = "https://api.truevault.com";
 
     /**
+     * @var TrueVaultCache
+     */
+    protected $cache = null;
+
+    /**
      * @var bool
      */
     protected $debug = false;
@@ -87,6 +102,18 @@ class TrueVault {
      * @var string
      */
     protected $apiKey;
+
+    /**
+     * Set caching
+     * @param TrueVaultCache $cache
+     * @throws Exception
+     */
+    public function setCache($cache) {
+        if (!($cache instanceof TrueVaultCache)) {
+            throw new Exception("Invalid cache instance passed");
+        }
+        $this->cache = $cache;
+    }
 
     /**
      * @param bool $debug
@@ -293,7 +320,7 @@ class TrueVault {
      * @return TrueVaultDocuments
      */
     public function documents($vaultId) {
-        $trueVaultDocuments = new TrueVaultDocuments($this, $vaultId);
+        $trueVaultDocuments = new TrueVaultDocuments($this, $vaultId, $this->cache);
         return $trueVaultDocuments;
     }
 
@@ -364,6 +391,11 @@ abstract class TrueVaultStores
      */
     protected $lastId;
 
+    /**
+     * @var TrueVaultCache cache storage
+     */
+    protected $cache;
+
     public function lastInsertId() {
         return $this->lastId;
     }
@@ -376,9 +408,10 @@ abstract class TrueVaultStores
         return $this->vaultId;
     }
 
-    public function __construct($trueVault, $vaultId) {
+    public function __construct($trueVault, $vaultId, $cache = null) {
         $this->trueVault = $trueVault;
         $this->vaultId = $vaultId;
+        $this->cache = $cache;
     }
 }
 
@@ -396,8 +429,14 @@ class TrueVaultDocuments extends TrueVaultStores
         $params["document"] = $this->trueVault->encodeData($data);
         $return = $this->trueVault->api("vaults/{$this->vaultId}/documents", "POST", $params);
 
-        if (array_key_exists("document_id", $return))
+        if (array_key_exists("document_id", $return)) {
             $this->lastId = $return["document_id"];
+
+            // save to cache if successful
+            if ($this->cache) {
+                $this->cache->set($this->vaultId, $return["document_id"], $data);
+            }
+        }
 
         return $return;
     }
@@ -414,11 +453,45 @@ class TrueVaultDocuments extends TrueVaultStores
         if (is_array($documentId))
             $documentId = join(",", $documentId);
 
+        // cache retrieval
+        if (strpos($documentId, ",") !== false && $this->cache) {
+            // get all documents from cache
+            $documentIds = explode(",", $documentId);
+            $list = array();
+
+            foreach ($documentIds as $lookupId) {
+                $data = $this->cache->get($this->vaultId, $lookupId);
+                if ($data) {
+                    $list[$lookupId] = $data;
+                }
+                else {
+                    $list = null;
+                    break;
+                }
+            }
+
+            if ($list != null)
+                return $list;
+        }
+        else if ($this->cache) {
+            // retrieve single document from cache
+            $data = $this->cache->get($this->vaultId, $documentId);
+            if ($data)
+                return $data;
+        }
+
         $response = $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "GET", $params);
 
         // return single document
         if (is_string($response)) {
-            return $this->trueVault->decodeData($response);
+            $data = $this->trueVault->decodeData($response);
+
+            // save to cache
+            if ($this->cache) {
+                $this->cache->set($this->vaultId, $documentId, $data);
+            }
+
+            return $data;
         }
 
         // return multiple documents
@@ -427,6 +500,11 @@ class TrueVaultDocuments extends TrueVaultStores
 
             foreach ($response["documents"] as $document) {
                 $list[$document["id"]] = $this->trueVault->decodeData($document["document"]);
+
+                // save to cache
+                if ($this->cache) {
+                    $this->cache->set($this->vaultId, $document["id"], $list[$document["id"]]);
+                }
             }
 
             return $list;
@@ -443,6 +521,11 @@ class TrueVaultDocuments extends TrueVaultStores
      */
     public function delete($documentId, $params = array()) {
         $response = $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "DELETE", $params);
+
+        if ($this->cache) {
+            $this->cache->delete($this->vaultId, $documentId);
+        }
+
         return $response;
     }
 
@@ -455,7 +538,13 @@ class TrueVaultDocuments extends TrueVaultStores
      */
     public function update($documentId, $data, $params = array()) {
         $params["document"] = $this->trueVault->encodeData($data);
-        return $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "PUT", $params);
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "PUT", $params);
+
+        if ($this->cache) {
+            $this->cache->set($this->vaultId, $documentId, $data);
+        }
+
+        return $response;
     }
 
     public function search($searchOptions, $params = array()) {
