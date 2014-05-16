@@ -78,7 +78,7 @@ class TrueVault {
      * @var array
      */
     public static $options = array(
-        "timeout"   => 10,
+        "timeout"   => 60,
         "useragent" => "truevault-php"
     );
 
