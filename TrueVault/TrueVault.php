@@ -233,7 +233,7 @@ class TrueVault {
             $file = $transfer["upload"];
             $fileTransfer = new TrueVaultFileTransfer($file, "r");
 
-            $opts[CURLOPT_HTTPHEADER] = array("Content-Type: application/octet-stream", "Content-Length: " . $fileTransfer->size());
+            $opts[CURLOPT_HTTPHEADER] = array("Content-Type: application/octet-stream");
             $opts[CURLOPT_BINARYTRANSFER] = true;
             $opts[CURLOPT_PUT] = true;
             $opts[CURLOPT_INFILE] = $fileTransfer->getHandle();
