@@ -42,6 +42,9 @@ $response = $documents->create(
     array("schema_id" => $schemaId)
 );
 
+$documentId = $response["document_id"];
+var_dump($documentId);
+
 $response = $documents->create(
     array(
         "uid" => 23,
