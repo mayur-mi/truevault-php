@@ -442,6 +442,32 @@ class TrueVaultDocuments extends TrueVaultStores
     }
 
     /**
+     * Request documents in chunks to avoid large URI errors
+     * @param array $documentIds
+     * @param array $params
+     * @param int $chunkSize
+     * @return array
+     * @throws TrueVaultException
+     */
+    private function getLarge($documentIds, $params, $chunkSize = 40) {
+
+        $chunks = array_chunk($documentIds, $chunkSize);
+        $return = [];
+
+        for ($i = 0; $i < count($chunks); $i++) {
+            $response = $this->get($chunks[$i], $params);
+
+            if (!is_array($response))
+                throw new TrueVaultException("Unable to obtain multiple documents", 0);
+
+            // merge chunk to final response
+            $return = array_merge($return, $response);
+        }
+
+        return $return;
+    }
+
+    /**
      * Get document data
      * @param string|array $documentId single document or multiple return
      * @param array $params
@@ -478,6 +504,19 @@ class TrueVaultDocuments extends TrueVaultStores
             $data = $this->cache->get($this->vaultId, $documentId);
             if ($data)
                 return $data;
+        }
+
+        if (strpos($documentId, ",") !== false) {
+            // requesting multiple documents, check if the created URI will not be too long to avoid HTTP error code 414
+            // to do so we can split the request into multiple parts - one document takes 36 chars + 1
+            // so the optimal size for one chunk is ~40 documents since we want to limit URI part to 1024+512 characters
+            // (1024+512 / 37 = ~41.5)
+
+            $chunkLimit = 40;
+            $documentIds = explode(",", $documentId);
+            if (count($documentIds) > $chunkLimit) {
+                return $this->getLarge($documentIds, $params, $chunkLimit);
+            }
         }
 
         $response = $this->trueVault->api("vaults/{$this->vaultId}/documents/{$documentId}", "GET", $params);
