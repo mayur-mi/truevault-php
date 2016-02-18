@@ -460,6 +460,10 @@ class TrueVaultDocuments extends TrueVaultStores
             if (!is_array($response))
                 throw new TrueVaultException("Unable to obtain multiple documents", 0);
 
+            // create array from the document response if we requested only single element
+            if (count($chunks[$i]) == 1)
+                $response = [$chunks[$i][0] => $response];
+
             // merge chunk to final response
             $return = array_merge($return, $response);
         }
