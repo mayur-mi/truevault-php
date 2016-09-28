@@ -599,6 +599,15 @@ class TrueVaultDocuments extends TrueVaultStores
 
         return $response;
     }
+
+    public function listAll($params = array()) {
+        $response = $this->trueVault->api("vaults/{$this->vaultId}/documents", "GET", $params);
+
+        if (array_key_exists("data", $response))
+            return $response["data"];
+
+        return $response;
+    }
 }
 
 class TrueVaultSchemas extends TrueVaultStores
