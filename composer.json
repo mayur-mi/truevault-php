@@ -1,15 +1,19 @@
 {
-    "name": "truevault/truevault",
+    "name": "mayur-mi/truevault",
     "type": "library",
     "version": "1.0.5",
     "description": "TrueVault PHP Client Library",
     "keywords": ["truevault","client","api"],
-    "homepage": "http://github.com/vavrecan/truevault-php",
+    "homepage": "http://github.com/mayur-mi/truevault-php",
     "license": "GPL-3.0",
     "authors": [
         {
             "name": "Marek Vavrecan",
             "email": "vavrecan@gmail.com"
+        },
+        {
+            "name": "Mayur Patel",
+            "email": "mayur.mindinventory@gmail.com"
         }
     ],
     "require": {
